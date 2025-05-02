@@ -18,6 +18,7 @@ public class Patron extends Thread {
 
 	private long totalWaitingTime;
 	private long responseTime;
+	private long turnaroundTime;
 
 	private DrinkOrder [] drinksOrder;
 	
@@ -44,6 +45,7 @@ public class Patron extends Thread {
 			System.out.println("+new thirsty Patron "+ this.ID +" arrived"); //Patron has actually arrived
 			//End do not change
 			
+			long firstDrinkTime = 0;
 	        for(int i=0;i<numberOfDrinks;i++) {
 	        	drinksOrder[i]=new DrinkOrder(this.ID); //order a drink (=CPU burst)	        
 	        	//drinksOrder[i]=new DrinkOrder(this.ID,i); //fixed drink order (=CPU burst), useful for testing
@@ -57,6 +59,7 @@ public class Patron extends Thread {
 				long waitedTime = System.currentTimeMillis(); //time for when the drink is given to the patron
 				if (i==0){
 					responseTime = waitedTime - orderTime; //if its the first drink ordered, get the response time
+					firstDrinkTime = orderTime;
 				}
 				long waitTime = waitedTime - orderTime;
 				totalWaitingTime += waitTime;	//add all the waiting time for each drink ordered to get the total waiting time
@@ -64,6 +67,8 @@ public class Patron extends Thread {
 				System.out.println("Drinking patron " + drinksOrder[i].toString());
 				sleep(drinksOrder[i].getImbibingTime()); //drinking drink = "IO"X
 			}
+			long endTime = System.currentTimeMillis();
+			turnaroundTime = endTime - firstDrinkTime;
 
 			System.out.println("Patron "+ this.ID + " completed ");
 			
@@ -77,6 +82,10 @@ public class Patron extends Thread {
 
 	public long getResponseTime(){
 		return responseTime;
+	}
+
+	public long getTurnaroundTime(){
+		return turnaroundTime;
 	}
 }
 	

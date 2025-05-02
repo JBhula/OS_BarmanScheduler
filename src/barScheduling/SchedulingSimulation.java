@@ -72,9 +72,13 @@ public class SchedulingSimulation {
 
 		for (Patron patron : patrons) {
             long patronWaitingTime = patron.getWaitingTime();
+			long rT = patron.getResponseTime();
+			long tT = patron.getTurnaroundTime();
 
 
-            System.out.println("Patron " + patron.ID + ": " + patronWaitingTime + "ms");
+            System.out.println("Patron " + patron.ID + " wait time: " + patronWaitingTime + "ms");
+			System.out.println("Patron " + patron.ID + " response time: " + rT + "ms");
+			System.out.println("Patron " + patron.ID + " turnaround time: " + tT + "ms");
         }
  	}
 }
