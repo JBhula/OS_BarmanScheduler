@@ -16,8 +16,8 @@ import java.util.Collections;
 
 public class SchedulingSimulation {
 	static int noPatrons=50; //number of customers - default value if not provided on command line
-	static int sched=1; //default scheduling algorithm, 0= FCFS, 1=SJF, 2=RR
-	static int q=10000, s=5;
+	static int sched=2; //default scheduling algorithm, 0= FCFS, 1=SJF, 2=RR
+	static int q=50, s=1;
 	static long seed=0;
 	static CountDownLatch startSignal;	
 	static Patron[] patrons; // array for customer threads
@@ -28,7 +28,7 @@ public class SchedulingSimulation {
 	static long endSimulationTime;
 	static long totalSimulationTime;
 	
-	static long windowSize = 5000;
+	static long windowSize = 3000;
 
 
 	public static void main(String[] args) throws InterruptedException, IOException {
@@ -116,9 +116,79 @@ public class SchedulingSimulation {
 		Collections.sort(completionTimes);
 		List<Double> throughputs = calculateThroughputOverTime(completionTimes);
 		//System.out.println(throughputs.size());
-		System.out.println("\nThroughput over time (patrons/second in 5-second windows):");
+		System.out.println("\nThroughput over time (patrons/second in 3-second windows):");
 		for (int i = 0; i < throughputs.size(); i++) {
     		System.out.printf("Window %d: %.2f orders/second\n", i+1, throughputs.get(i));
+		}
+
+
+		//this is where output all the data to a .csv file
+		//It is in the form:
+		// list of all the response time of all 50 patrons with the average at the end (eg. 23, 43, 52,..avg)
+		// list of all the wait times of all 50 patrons with the average at the end (eg. 2345, 3546, 5769,..avg)
+		// list of all the turnaround times of all 50 patrons with the average at the end (eg. 3456, 4657, 6809,..avg)
+		// busy time, idle time, simulation time, cpu utilisation (eg. 14183, 1692, 16505, 0.897)
+		// throughput for each window (window 1, window 2...) (eg. 2.8, 4.4, 2.8)
+		// I use this format to make my graphs
+		try {
+			String filename;
+			if(sched == 0){
+				filename = "FCFS_results.csv";
+			}
+			else if(sched==1){
+				filename = "SJF_results.csv";
+			}
+			else{
+				filename = "RR_results.csv";
+			}
+			java.io.FileWriter csvWriter = new java.io.FileWriter(filename);
+
+			// Write response times
+			long totalResponseTime = 0;
+			for (Patron patron : patrons) {
+				long rT = patron.getResponseTime();
+				csvWriter.append(String.valueOf(rT)).append(",");
+				totalResponseTime += rT;
+			}
+			double avgResponseTime = (double) totalResponseTime / noPatrons;
+			csvWriter.append(String.valueOf(avgResponseTime)).append("\n");
+
+			// Write waiting times
+			long totalWaitingTime = 0;
+			for (Patron patron : patrons) {
+				long wT = patron.getWaitingTime();
+				csvWriter.append(String.valueOf(wT)).append(",");
+				totalWaitingTime += wT;
+			}
+			double avgWaitingTime = (double) totalWaitingTime / noPatrons;
+			csvWriter.append(String.valueOf(avgWaitingTime)).append("\n");
+
+			// Write turnaround times
+			long totalTurnaroundTime = 0;
+			for (Patron patron : patrons) {
+				long tT = patron.getTurnaroundTime();
+				csvWriter.append(String.valueOf(tT)).append(",");
+				totalTurnaroundTime += tT;
+			}
+			double avgTurnaroundTime = (double) totalTurnaroundTime / noPatrons;
+			csvWriter.append(String.valueOf(avgTurnaroundTime)).append("\n");
+
+			// Write system metrics
+			csvWriter.append(String.valueOf(Sarah.getBusyTime())).append(","); //busy time
+			csvWriter.append(String.valueOf(totalSimulationTime - Sarah.getBusyTime())).append(","); //idle time
+			csvWriter.append(String.valueOf(totalSimulationTime)).append(","); //total simulation time
+			csvWriter.append(String.valueOf(busyTime / a)).append("\n"); //cpu utilization
+
+			// Write throughputs
+			for (int i = 0; i < throughputs.size(); i++) {
+				csvWriter.append(String.valueOf(throughputs.get(i))).append(",");
+			}
+
+			csvWriter.flush();
+			csvWriter.close();
+			System.out.println("\nResults written to " + filename);
+		} catch (IOException e) {
+			System.err.println("Error writing to CSV file:");
 		}
 
 
@@ -135,7 +205,7 @@ public class SchedulingSimulation {
 			long endTime = completionTimes.get(completionTimes.size() - 1);
 			
 			//loop from start time to end time and calculate throughput for every windowSize (5s in this case)
-			for (long windowStart = startTime; windowStart < endTime; windowStart += 5000) {
+			for (long windowStart = startTime; windowStart < endTime; windowStart += 3000) {
 				long windowEnd = windowStart + windowSize;
 				int count = 0;
 				
