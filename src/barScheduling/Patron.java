@@ -2,8 +2,11 @@
 package barScheduling;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+
 
 /*class for the patrons at the bar*/
 
@@ -19,6 +22,9 @@ public class Patron extends Thread {
 	private long totalWaitingTime;
 	private long responseTime;
 	private long turnaroundTime;
+
+	private long completionTime;
+
 
 	private DrinkOrder [] drinksOrder;
 	
@@ -68,6 +74,7 @@ public class Patron extends Thread {
 				sleep(drinksOrder[i].getImbibingTime()); //drinking drink = "IO"X
 			}
 			long endTime = System.currentTimeMillis();
+			completionTime=endTime;
 			turnaroundTime = endTime - firstDrinkTime; //get the turnaround time when the last drink is finished (ie the patrons work is done)
 
 			System.out.println("Patron "+ this.ID + " completed ");
@@ -87,6 +94,11 @@ public class Patron extends Thread {
 	public long getTurnaroundTime(){
 		return turnaroundTime;
 	}
+
+	public long getCompletionTime(){
+		return completionTime;
+	}
+
 }
 	
 

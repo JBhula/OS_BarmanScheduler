@@ -9,8 +9,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.ArrayList;
-import java.util.List;
 
 /*
  Barman Thread class.
@@ -25,12 +23,7 @@ public class Barman extends Thread {
 	int q=10000; //really big if not set, so FCFS
 	private int switchTime;
 
-	private long totalIdleTime;
 	private long totalBusyTime;
-
-	//this is for throughput calculations
-	private List<Long> completionTimes = new ArrayList<>(); //list that stores all completion time for patrons
-	private int windowSize = 5000;	//size of window to calculate throughput on.
 	
 	
 	Barman(  CountDownLatch startSignal,int sAlg) {
@@ -62,13 +55,7 @@ public class Barman extends Thread {
 			if ((schedAlg==0)||(schedAlg==1)) { //FCFS and non-preemptive SJF
 				
 				while(true) {
-					//CPU (barman) is waiting to get a drink to prepare - this is time spent idle
-					long startIdleTime = System.currentTimeMillis();
 					currentOrder=orderQueue.take();
-					long endIdleTime = System.currentTimeMillis();
-					//cumulatively add to totalIdleTime
-					totalIdleTime += (endIdleTime - startIdleTime);
-
 					System.out.println("---Barman preparing drink for patron "+ currentOrder.toString());
 
 					//CPU (barman) is getting used while preparing the drink - this is the time spent busy
@@ -79,7 +66,6 @@ public class Barman extends Thread {
 					totalBusyTime += (endBusyTime - startBusyTime);
 					System.out.println("---Barman has made drink for patron "+ currentOrder.toString());
 					currentOrder.orderDone();
-					completionTimes.add(System.currentTimeMillis()); //add completion time to list
 					sleep(switchTime);//cost for switching orders
 					//totalBusyTime += switchTime;
 				}
@@ -96,13 +82,19 @@ public class Barman extends Thread {
 					System.out.println("---Barman preparing drink for patron "+ currentOrder.toString() );
 					burst=currentOrder.getExecutionTime();
 					if(burst<=q) { //within the quantum
+						long startBusyTime = System.currentTimeMillis();
 						sleep(burst); //processing complete order ="CPU burst"
+						long endBusyTime = System.currentTimeMillis();
+						totalBusyTime += (endBusyTime - startBusyTime);
+
 						System.out.println("---Barman has made drink for patron "+ currentOrder.toString());
 						currentOrder.orderDone();
-						completionTimes.add(System.currentTimeMillis()); //add completion time to list
 					}
 					else {
+						long startBusyTime = System.currentTimeMillis();
 						sleep(q);
+						long endBusyTime = System.currentTimeMillis();
+						totalBusyTime += (endBusyTime - startBusyTime);
 						timeLeft=burst-q;
 						System.out.println("--INTERRUPT---preparation of drink for patron "+ currentOrder.toString()+ " time left=" + timeLeft);
 						interrupts++;
@@ -110,6 +102,7 @@ public class Barman extends Thread {
 						orderQueue.put(currentOrder); //put back on queue at end
 					}
 					sleep(switchTime);//switching orders
+					//totalBusyTime += switchTime;
 				}
 			}
 				
@@ -119,42 +112,11 @@ public class Barman extends Thread {
 		}
 	}
 
-	public long getIdleTime(){
-		return totalIdleTime;
-	}
 
 	public long getBusyTime(){
 		return totalBusyTime;
 	}
 
-	//This method calculates the throughput over the entire simulation on a specific window time frame
-	public List<Double> calculateThroughputOverTime() {
-		List<Double> throughputs = new ArrayList<>();
-		
-		//get the start time of the first and last completion time (so that we can loop through the times)
-		long startTime = completionTimes.get(0);
-		long endTime = completionTimes.get(completionTimes.size() - 1);
-		
-		//loop from start time to end time and calculate throughput for every windowSize (5s in this case)
-		for (long windowStart = startTime; windowStart < endTime; windowStart += 5000) {
-			long windowEnd = windowStart + windowSize;
-			int count = 0;
-			
-			//if the completion time falls within the time frame add 1 to count
-			for (Long time : completionTimes) {
-				if (time >= windowStart && time < windowEnd) {
-					count++;
-				} else if (time >= windowEnd) {
-					break; //we are out of the time frame we are checking so leave
-				}
-			}
-			
-			double throughput = count / (windowSize / 1000.0); // orders per second
-			throughputs.add(throughput);
-		}
-		
-		return throughputs;
-	}
 }
 
 

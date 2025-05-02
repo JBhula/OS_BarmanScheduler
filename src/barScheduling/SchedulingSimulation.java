@@ -9,8 +9,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
-//for array and lists (used for throughput calculation)
-
+//for array (used for throughput calculation) and collections so i can sort the array in ascending timing
+import java.util.ArrayList;
+import java.util.Collections;
 
 
 public class SchedulingSimulation {
@@ -27,6 +28,7 @@ public class SchedulingSimulation {
 	static long endSimulationTime;
 	static long totalSimulationTime;
 	
+	static long windowSize = 5000;
 
 
 	public static void main(String[] args) throws InterruptedException, IOException {
@@ -106,13 +108,51 @@ public class SchedulingSimulation {
 		System.out.println("Simulation Time: " + totalSimulationTime);
 		double a = (double)(totalSimulationTime);
 		System.out.println("CPU Utilization: " + busyTime/a);
-
-		List<Double> throughputs = Sarah.calculateThroughputOverTime();
-		System.out.println("\nThroughput over time (orders/second in 5-second windows):");
+		List<Long> completionTimes = new ArrayList<>();
+		for (Patron patron : patrons) {
+			//System.out.println(patron.getCompletionTime());
+    		completionTimes.add(patron.getCompletionTime());
+		}
+		Collections.sort(completionTimes);
+		List<Double> throughputs = calculateThroughputOverTime(completionTimes);
+		//System.out.println(throughputs.size());
+		System.out.println("\nThroughput over time (patrons/second in 5-second windows):");
 		for (int i = 0; i < throughputs.size(); i++) {
     		System.out.printf("Window %d: %.2f orders/second\n", i+1, throughputs.get(i));
 		}
 
+
  	}
+
+		//This method calculates the throughput over the entire simulation on a specific window time frame
+		public static List<Double> calculateThroughputOverTime(List<Long> completionTimes) {
+			
+
+			List<Double> throughputs = new ArrayList<>();
+			
+			//get the start time of the first and last completion time (so that we can loop through the times)
+			long startTime = completionTimes.get(0);
+			long endTime = completionTimes.get(completionTimes.size() - 1);
+			
+			//loop from start time to end time and calculate throughput for every windowSize (5s in this case)
+			for (long windowStart = startTime; windowStart < endTime; windowStart += 5000) {
+				long windowEnd = windowStart + windowSize;
+				int count = 0;
+				
+				//if the completion time falls within the time frame add 1 to count
+				for (Long time : completionTimes) {
+					if (time >= windowStart && time < windowEnd) {
+						count++;
+					} else if (time >= windowEnd) {
+						break; //we are out of the time frame we are checking so leave
+					}
+				}
+				
+				double throughput = count / (windowSize / 1000.0); // orders per second
+				throughputs.add(throughput);
+			}
+			
+			return throughputs;
+		}
 
 }
