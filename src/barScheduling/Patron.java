@@ -17,6 +17,7 @@ public class Patron extends Thread {
 	private int numberOfDrinks;
 
 	private long totalWaitingTime;
+	private long responseTime;
 
 	private DrinkOrder [] drinksOrder;
 	
@@ -49,16 +50,19 @@ public class Patron extends Thread {
 				System.out.println("Order placed by " + drinksOrder[i].toString()); //output in standard format  - do not change this
 				
 				long orderTime = System.currentTimeMillis(); //time for when drink is ordered
-
+				
 				theBarman.placeDrinkOrder(drinksOrder[i]);
 				drinksOrder[i].waitForOrder();
 
 				long waitedTime = System.currentTimeMillis(); //time for when the drink is given to the patron
-				long waitTime = orderTime - waitedTime;
-				totalWaitingTime += waitTime;
+				if (i==0){
+					responseTime = waitedTime - orderTime; //if its the first drink ordered, get the response time
+				}
+				long waitTime = waitedTime - orderTime;
+				totalWaitingTime += waitTime;	//add all the waiting time for each drink ordered to get the total waiting time
 
 				System.out.println("Drinking patron " + drinksOrder[i].toString());
-				sleep(drinksOrder[i].getImbibingTime()); //drinking drink = "IO"
+				sleep(drinksOrder[i].getImbibingTime()); //drinking drink = "IO"X
 			}
 
 			System.out.println("Patron "+ this.ID + " completed ");
@@ -69,6 +73,10 @@ public class Patron extends Thread {
 
 	public long getWaitingTime(){
 		return totalWaitingTime;
+	}
+
+	public long getResponseTime(){
+		return responseTime;
 	}
 }
 	
