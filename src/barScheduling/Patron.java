@@ -13,9 +13,10 @@ public class Patron extends Thread {
 	private CountDownLatch startSignal; //all start at once, actually shared
 	private Barman theBarman; //the Barman is actually shared though
 
-	private int ID; //thread ID 
+	public int ID; //thread ID 
 	private int numberOfDrinks;
 
+	private long totalWaitingTime;
 
 	private DrinkOrder [] drinksOrder;
 	
@@ -46,8 +47,16 @@ public class Patron extends Thread {
 	        	drinksOrder[i]=new DrinkOrder(this.ID); //order a drink (=CPU burst)	        
 	        	//drinksOrder[i]=new DrinkOrder(this.ID,i); //fixed drink order (=CPU burst), useful for testing
 				System.out.println("Order placed by " + drinksOrder[i].toString()); //output in standard format  - do not change this
+				
+				long orderTime = System.currentTimeMillis(); //time for when drink is ordered
+
 				theBarman.placeDrinkOrder(drinksOrder[i]);
 				drinksOrder[i].waitForOrder();
+
+				long waitedTime = System.currentTimeMillis(); //time for when the drink is given to the patron
+				long waitTime = orderTime - waitedTime;
+				totalWaitingTime += waitTime;
+
 				System.out.println("Drinking patron " + drinksOrder[i].toString());
 				sleep(drinksOrder[i].getImbibingTime()); //drinking drink = "IO"
 			}
@@ -57,6 +66,10 @@ public class Patron extends Thread {
 		} catch (InterruptedException e1) {  //do nothing
 		}
 }
+
+	public long getWaitingTime(){
+		return totalWaitingTime;
+	}
 }
 	
 

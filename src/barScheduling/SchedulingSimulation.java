@@ -69,5 +69,12 @@ public class SchedulingSimulation {
     	Sarah.interrupt();   //tell Barman to close up
     	Sarah.join(); //wait till she has
       	System.out.println("------Bar closed------");
+
+		for (Patron patron : patrons) {
+            long patronWaitingTime = patron.getWaitingTime();
+
+
+            System.out.println("Patron " + patron.ID + ": " + patronWaitingTime + "ms");
+        }
  	}
 }
