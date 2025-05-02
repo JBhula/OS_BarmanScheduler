@@ -20,6 +20,9 @@ public class Barman extends Thread {
 	int schedAlg =0;
 	int q=10000; //really big if not set, so FCFS
 	private int switchTime;
+
+	private long totalIdleTime;
+	private long totalBusyTime;
 	
 	
 	Barman(  CountDownLatch startSignal,int sAlg) {
@@ -50,9 +53,21 @@ public class Barman extends Thread {
 
 			if ((schedAlg==0)||(schedAlg==1)) { //FCFS and non-preemptive SJF
 				while(true) {
+					//CPU (barman) is waiting to get a drink to prepare - this is time spent idle
+					long startIdleTime = System.currentTimeMillis();
 					currentOrder=orderQueue.take();
+					long endIdleTime = System.currentTimeMillis();
+					//cumulatively add to totalIdleTime
+					totalIdleTime += (endIdleTime - startIdleTime);
+
 					System.out.println("---Barman preparing drink for patron "+ currentOrder.toString());
+
+					//CPU (barman) is getting used while preparing the drink - this is the time spent busy
+					long startBusyTime = System.currentTimeMillis();
 					sleep(currentOrder.getExecutionTime()); //processing order (="CPU burst")
+					long endBusyTime = System.currentTimeMillis();
+					//cumulatively add to totalBusyTime
+					totalBusyTime += (endBusyTime - startBusyTime);
 					System.out.println("---Barman has made drink for patron "+ currentOrder.toString());
 					currentOrder.orderDone();
 					sleep(switchTime);//cost for switching orders
@@ -90,6 +105,14 @@ public class Barman extends Thread {
 			System.out.println("---Barman is packing up ");
 			System.out.println("---number interrupts="+interrupts);
 		}
+	}
+
+	public long getIdleTime(){
+		return totalIdleTime;
+	}
+
+	public long getBusyTime(){
+		return totalBusyTime;
 	}
 }
 

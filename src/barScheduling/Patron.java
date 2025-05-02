@@ -59,7 +59,7 @@ public class Patron extends Thread {
 				long waitedTime = System.currentTimeMillis(); //time for when the drink is given to the patron
 				if (i==0){
 					responseTime = waitedTime - orderTime; //if its the first drink ordered, get the response time
-					firstDrinkTime = orderTime;
+					firstDrinkTime = orderTime;				//store time for when first drink is ordered for turnaround time
 				}
 				long waitTime = waitedTime - orderTime;
 				totalWaitingTime += waitTime;	//add all the waiting time for each drink ordered to get the total waiting time
@@ -68,7 +68,7 @@ public class Patron extends Thread {
 				sleep(drinksOrder[i].getImbibingTime()); //drinking drink = "IO"X
 			}
 			long endTime = System.currentTimeMillis();
-			turnaroundTime = endTime - firstDrinkTime;
+			turnaroundTime = endTime - firstDrinkTime; //get the turnaround time when the last drink is finished (ie the patrons work is done)
 
 			System.out.println("Patron "+ this.ID + " completed ");
 			

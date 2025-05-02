@@ -11,13 +11,15 @@ import java.util.concurrent.CountDownLatch;
 
 public class SchedulingSimulation {
 	static int noPatrons=10; //number of customers - default value if not provided on command line
-	static int sched=0; //default scheduling algorithm, 0= FCFS, 1=SJF, 2=RR
+	static int sched=1; //default scheduling algorithm, 0= FCFS, 1=SJF, 2=RR
 	static int q=10000, s=0;
 	static long seed=0;
 	static CountDownLatch startSignal;	
 	static Patron[] patrons; // array for customer threads
 	static Barman Sarah;
-
+	static long startSimulationTime;
+	static long endSimulationTime;
+	static long totalSimulationTime;
 	
 
 	public static void main(String[] args) throws InterruptedException, IOException {
@@ -35,7 +37,9 @@ public class SchedulingSimulation {
 		//create barman
         Sarah= new Barman(startSignal,sched,q,s); 
      	Sarah.start();
-  
+
+		startSimulationTime = System.currentTimeMillis();
+
 	    //create all the patrons, who all need access to Barman
 		patrons = new Patron[noPatrons];
 		for (int i=0;i<noPatrons;i++) {
@@ -62,12 +66,19 @@ public class SchedulingSimulation {
 			
       	startSignal.countDown(); //main method ready
       	
+		//this is where simulation starts
+		//startSimulationTime = System.currentTimeMillis();
+
+
+
       	//wait till all patrons done, otherwise race condition on the file closing!
       	for (int i=0;i<noPatrons;i++)  patrons[i].join();
 
     	System.out.println("------Waiting for Barman------");
     	Sarah.interrupt();   //tell Barman to close up
     	Sarah.join(); //wait till she has
+		//this is where simulation ends
+		endSimulationTime = System.currentTimeMillis();
       	System.out.println("------Bar closed------");
 
 		for (Patron patron : patrons) {
@@ -80,5 +91,13 @@ public class SchedulingSimulation {
 			System.out.println("Patron " + patron.ID + " response time: " + rT + "ms");
 			System.out.println("Patron " + patron.ID + " turnaround time: " + tT + "ms");
         }
+		totalSimulationTime = endSimulationTime - startSimulationTime;
+
+		double busyTime = (double)Sarah.getBusyTime();
+		System.out.println("Busy Time: " + Sarah.getBusyTime());
+		System.out.println("Simulation Time: " + totalSimulationTime);
+		double a = (double)(totalSimulationTime);
+		System.out.println("CPU Utilization: " + busyTime/a);
+
  	}
 }
