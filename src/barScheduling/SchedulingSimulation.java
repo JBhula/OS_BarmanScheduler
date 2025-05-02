@@ -5,22 +5,29 @@ package barScheduling;
 
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
+//for array and lists (used for throughput calculation)
+
+
 
 public class SchedulingSimulation {
-	static int noPatrons=10; //number of customers - default value if not provided on command line
+	static int noPatrons=50; //number of customers - default value if not provided on command line
 	static int sched=1; //default scheduling algorithm, 0= FCFS, 1=SJF, 2=RR
-	static int q=10000, s=0;
+	static int q=10000, s=5;
 	static long seed=0;
 	static CountDownLatch startSignal;	
 	static Patron[] patrons; // array for customer threads
 	static Barman Sarah;
+
+	//this is for CPU Utilization calculations
 	static long startSimulationTime;
 	static long endSimulationTime;
 	static long totalSimulationTime;
 	
+
 
 	public static void main(String[] args) throws InterruptedException, IOException {
 
@@ -95,9 +102,17 @@ public class SchedulingSimulation {
 
 		double busyTime = (double)Sarah.getBusyTime();
 		System.out.println("Busy Time: " + Sarah.getBusyTime());
+		System.out.println("Idle Time: " + (totalSimulationTime - Sarah.getBusyTime()));
 		System.out.println("Simulation Time: " + totalSimulationTime);
 		double a = (double)(totalSimulationTime);
 		System.out.println("CPU Utilization: " + busyTime/a);
 
+		List<Double> throughputs = Sarah.calculateThroughputOverTime();
+		System.out.println("\nThroughput over time (orders/second in 5-second windows):");
+		for (int i = 0; i < throughputs.size(); i++) {
+    		System.out.printf("Window %d: %.2f orders/second\n", i+1, throughputs.get(i));
+		}
+
  	}
+
 }
