@@ -46,7 +46,7 @@ public class SchedulingSimulation {
 		//create barman
         Sarah= new Barman(startSignal,sched,q,s); 
      	Sarah.start();
-
+		//this is where simulation starts
 		startSimulationTime = System.currentTimeMillis();
 
 	    //create all the patrons, who all need access to Barman
@@ -75,7 +75,7 @@ public class SchedulingSimulation {
 			
       	startSignal.countDown(); //main method ready
       	
-		//this is where simulation starts
+		
 		//startSimulationTime = System.currentTimeMillis();
 
 
