@@ -16,8 +16,8 @@ import java.util.Collections;
 
 public class SchedulingSimulation {
 	static int noPatrons=50; //number of customers - default value if not provided on command line
-	static int sched=0; //default scheduling algorithm, 0= FCFS, 1=SJF, 2=RR
-	static int q=50, s=1;
+	static int sched=2; //default scheduling algorithm, 0= FCFS, 1=SJF, 2=RR
+	static int q=100, s=1;
 	static long seed=0;
 	static CountDownLatch startSignal;	
 	static Patron[] patrons; // array for customer threads
@@ -28,7 +28,7 @@ public class SchedulingSimulation {
 	static long endSimulationTime;
 	static long totalSimulationTime;
 	
-	static long windowSize = 3000;
+	static long windowSize = 1000;
 
 
 	public static void main(String[] args) throws InterruptedException, IOException {
@@ -89,6 +89,7 @@ public class SchedulingSimulation {
 		//this is where simulation ends
 		endSimulationTime = System.currentTimeMillis();
       	System.out.println("------Bar closed------");
+		totalSimulationTime = endSimulationTime - startSimulationTime;
 
 		for (Patron patron : patrons) {
             long patronWaitingTime = patron.getWaitingTime();
@@ -100,14 +101,16 @@ public class SchedulingSimulation {
 			System.out.println("Patron " + patron.ID + " response time: " + rT + "ms");
 			System.out.println("Patron " + patron.ID + " turnaround time: " + tT + "ms");
         }
-		totalSimulationTime = endSimulationTime - startSimulationTime;
+		
 
-		double busyTime = (double)Sarah.getBusyTime();
+		
 		System.out.println("Busy Time: " + Sarah.getBusyTime());
 		System.out.println("Idle Time: " + (totalSimulationTime - Sarah.getBusyTime()));
 		System.out.println("Simulation Time: " + totalSimulationTime);
-		double a = (double)(totalSimulationTime);
-		System.out.println("CPU Utilization: " + busyTime/a);
+		double busyTime = (double)Sarah.getBusyTime();
+		double totalSimulationTimeD = (double)(totalSimulationTime);
+		float CPU_util = (float)(busyTime/totalSimulationTimeD);
+		System.out.println("CPU Utilization: " + CPU_util);
 		List<Long> completionTimes = new ArrayList<>();
 		for (Patron patron : patrons) {
 			//System.out.println(patron.getCompletionTime());
@@ -180,7 +183,7 @@ public class SchedulingSimulation {
 			csvWriter.append(String.valueOf(Sarah.getBusyTime())).append(","); //busy time
 			csvWriter.append(String.valueOf(totalSimulationTime - Sarah.getBusyTime())).append(","); //idle time
 			csvWriter.append(String.valueOf(totalSimulationTime)).append(","); //total simulation time
-			csvWriter.append(String.valueOf(busyTime / a)).append("\n"); //cpu utilization
+			csvWriter.append(String.valueOf(CPU_util)).append("\n"); //cpu utilization
 
 			// Write throughputs
 			for (int i = 0; i < throughputs.size(); i++) {
@@ -212,7 +215,7 @@ public class SchedulingSimulation {
 			long endTime = completionTimes.get(completionTimes.size() - 1);
 			
 			//loop from start time to end time and calculate throughput for every windowSize (5s in this case)
-			for (long windowStart = startTime; windowStart < endTime; windowStart += 3000) {
+			for (long windowStart = startTime; windowStart < endTime; windowStart += 1000) {
 				long windowEnd = windowStart + windowSize;
 				int count = 0;
 				

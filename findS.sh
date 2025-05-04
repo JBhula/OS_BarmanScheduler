@@ -27,6 +27,7 @@ for S in $S_VALUES; do
     OUTPUT=$(make run ARGS="$NO_PATRONS $SCHED $S $Q $SEED")
 
     #exract metrics so we can see which value will be the best
+    #print entire programs output, look for metric, split line into array and store the metric
     AVG_RESPONSE=$(echo "$OUTPUT" | grep "Avg response time:" | awk '{print $4}')
     AVG_WAITING=$(echo "$OUTPUT" | grep "Avg waiting time:" | awk '{print $4}')
     AVG_TURNAROUND=$(echo "$OUTPUT" | grep "Avg turnaround time:" | awk '{print $4}')

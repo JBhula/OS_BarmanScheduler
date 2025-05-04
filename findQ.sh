@@ -8,7 +8,7 @@ S=1      #keep s the same (1 I found to be the best value)
 SEED=0   #keep seed the same
 
 #check through these q values
-Q_VALUES="1 5 10 25 50 69 75 85 100 125"
+Q_VALUES="1 5 10 25 50 69 75 85 100 125 150 175 200 500"
 
 #store results so we can see them
 OUTPUT_FILE="best_q_results.csv"
@@ -28,6 +28,7 @@ for Q in $Q_VALUES; do
     OUTPUT=$(make run ARGS="$NO_PATRONS $SCHED $S $Q $SEED")
 
     #exract metrics so we can see which value will be the best
+    #print entire programs output, look for metric, split line into array and store the metric
     AVG_RESPONSE=$(echo "$OUTPUT" | grep "Avg response time:" | awk '{print $4}')
     AVG_WAITING=$(echo "$OUTPUT" | grep "Avg waiting time:" | awk '{print $4}')
     AVG_TURNAROUND=$(echo "$OUTPUT" | grep "Avg turnaround time:" | awk '{print $4}')
