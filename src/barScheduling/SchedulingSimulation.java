@@ -16,7 +16,7 @@ import java.util.Collections;
 
 public class SchedulingSimulation {
 	static int noPatrons=50; //number of customers - default value if not provided on command line
-	static int sched=2; //default scheduling algorithm, 0= FCFS, 1=SJF, 2=RR
+	static int sched=0; //default scheduling algorithm, 0= FCFS, 1=SJF, 2=RR
 	static int q=50, s=1;
 	static long seed=0;
 	static CountDownLatch startSignal;	
@@ -150,18 +150,20 @@ public class SchedulingSimulation {
 				csvWriter.append(String.valueOf(rT)).append(",");
 				totalResponseTime += rT;
 			}
-			double avgResponseTime = (double) totalResponseTime / noPatrons;
-			csvWriter.append(String.valueOf(avgResponseTime)).append("\n");
+			double avgResponseTime = (double) totalResponseTime / noPatrons; 
+			csvWriter.append(String.valueOf(avgResponseTime)).append("\n"); //write avg response time to file
+			System.out.println("\nAvg response time: " + avgResponseTime);
 
 			// Write waiting times
 			long totalWaitingTime = 0;
 			for (Patron patron : patrons) {
 				long wT = patron.getWaitingTime();
-				csvWriter.append(String.valueOf(wT)).append(",");
+				csvWriter.append(String.valueOf(wT)).append(","); 
 				totalWaitingTime += wT;
 			}
 			double avgWaitingTime = (double) totalWaitingTime / noPatrons;
-			csvWriter.append(String.valueOf(avgWaitingTime)).append("\n");
+			csvWriter.append(String.valueOf(avgWaitingTime)).append("\n");//write avg waiting time to file
+			System.out.println("Avg waiting time: " + avgWaitingTime);
 
 			// Write turnaround times
 			long totalTurnaroundTime = 0;
@@ -171,7 +173,8 @@ public class SchedulingSimulation {
 				totalTurnaroundTime += tT;
 			}
 			double avgTurnaroundTime = (double) totalTurnaroundTime / noPatrons;
-			csvWriter.append(String.valueOf(avgTurnaroundTime)).append("\n");
+			csvWriter.append(String.valueOf(avgTurnaroundTime)).append("\n"); //write avg turnaround time to file
+			System.out.println("Avg turnaround time: " + avgTurnaroundTime);
 
 			// Write system metrics
 			csvWriter.append(String.valueOf(Sarah.getBusyTime())).append(","); //busy time
@@ -183,6 +186,10 @@ public class SchedulingSimulation {
 			for (int i = 0; i < throughputs.size(); i++) {
 				csvWriter.append(String.valueOf(throughputs.get(i))).append(",");
 			}
+			double totalSimulationTime_seconds = (double)(totalSimulationTime/1000);
+			double avgThroughput = 50/totalSimulationTime_seconds;
+			System.out.println("Avg Throughput: " + avgThroughput);
+			
 
 			csvWriter.flush();
 			csvWriter.close();
